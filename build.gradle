@@ -1,0 +1,60 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.5.5'
+	id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.gcp'
+version = '0.0.1-SNAPSHOT'
+description = 'Demo project for Spring Boot GCP'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(17)
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	runtimeOnly 'com.mysql:mysql-connector-j'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
+
+// -------------------- Angular integration --------------------
+def angularDir = "$projectDir/college-management-front"
+def angularBuildDir = "${angularDir}/dist/college-management-front/browser"
+def springStaticDir = "$projectDir/src/main/resources/static"
+
+task buildAngular(type: Exec) {
+	workingDir angularDir
+	if (System.getProperty("os.name").toLowerCase().contains("windows")) {
+		// On Windows
+		commandLine "cmd", "/c", "npm install && npm run build -- --configuration production"
+	} else {
+		// On Linux/Mac (like Cloud Build)
+		commandLine "sh", "-c", "npm install && npm run build -- --configuration production"
+	}
+}
+
+
+task copyAngular(type: Copy) {
+	dependsOn buildAngular
+	from fileTree(dir: angularBuildDir, include: "**/*")
+	into springStaticDir
+}
+
+processResources {
+	dependsOn copyAngular
+}
