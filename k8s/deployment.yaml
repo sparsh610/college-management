@@ -1,59 +1,52 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-    name: college-management
-    labels:
-      app: college-management
+  name: college-management
+  labels:
+    app: college-management
 spec:
-    replicas: 1
-    selector:
-      matchLabels:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: college-management
+  template:
+    metadata:
+      labels:
         app: college-management
-    template:
-      metadata:
-        labels:
-          app: college-management
-      spec:
-        containers:
-          - name: college-management
-            image: us-central1-docker.pkg.dev/college-management-470416/college-repo/college-management:latest
-            ports:
-              - containerPort: 9090
-            resources:
-              requests:
-                memory: "512Mi"
-                cpu: "250m"
-              limits:
-                memory: "1Gi"
-                cpu: "500m"
-            env:
-              - name: SPRING_PROFILES_ACTIVE
-                value: "prod"
-              - name: SPRING_DATASOURCE_URL
-                value: "jdbc:mysql://127.0.0.1:3306/collegemanagement?serverTimezone=UTC"
-              - name: SPRING_DATASOURCE_USERNAME
-                value: "root"
-              - name: SPRING_DATASOURCE_PASSWORD
-                value: "root"
-          - name: cloud-sql-proxy
-            image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.11.4
-            args:
-              - "--address=127.0.0.1"
-              - "--port=3306"
-              - "--credentials-file=/secrets/cloud-sql-credentials/cloud-sql-proxy-key.json"
-              - "college-management-470416:us-central1:college-mysql"
-            resources:
-              requests:
-                memory: "256Mi"
-                cpu: "100m"
-              limits:
-                memory: "512Mi"
-                cpu: "200m"
-            volumeMounts:
-              - name: cloud-sql-credentials
-                mountPath: "/secrets/cloud-sql-credentials"
-                readOnly: true
-        volumes:
-          - name: cloud-sql-credentials
-            secret:
-              secretName: cloud-sql-credentials
+    spec:
+      serviceAccountName: default   # or replace with GKE service account bound via Workload Identity
+      containers:
+        - name: college-management
+          image: us-central1-docker.pkg.dev/college-management-470416/college-repo/college-management:latest
+          ports:
+            - containerPort: 9090
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "prod"
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:mysql://127.0.0.1:3306/collegemanagement?serverTimezone=UTC"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: "root"
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: "root"
+        - name: cloud-sql-proxy
+          image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.11.4
+          args:
+            - "--address=127.0.0.1"
+            - "--port=3306"
+            - "--private-ip"   # remove this if you're using public IP
+            - "college-management-470416:us-central1:college-mysql"
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "200m"
