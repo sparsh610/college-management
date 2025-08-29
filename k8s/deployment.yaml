@@ -32,15 +32,9 @@ spec:
               - name: SPRING_DATASOURCE_URL
                 value: "jdbc:mysql://127.0.0.1:3306/collegemanagement?serverTimezone=UTC"
               - name: SPRING_DATASOURCE_USERNAME
-                valueFrom:
-                  secretKeyRef:
-                    name: db-credentials
-                    key: username
+                value: "root"
               - name: SPRING_DATASOURCE_PASSWORD
-                valueFrom:
-                  secretKeyRef:
-                    name: db-credentials
-                    key: password
+                value: "root"
           - name: cloud-sql-proxy
             image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.11.4
             args:
