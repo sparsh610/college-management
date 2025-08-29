@@ -45,7 +45,7 @@ spec:
             - "college-management-470416:us-central1:college-mysql"
           resources:
             requests:
-              memory: "256Mi"
+              memory: "512Mi"
               cpu: "100m"
             limits:
               memory: "512Mi"
